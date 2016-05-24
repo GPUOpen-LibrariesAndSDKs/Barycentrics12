@@ -19,6 +19,8 @@ System requirements
   * For a fresh installation of Visual Studio 2015, choose 'Custom', not 'Typical', and select the required components.
   * For existing installations, you can re-run the installer or select Visual Studio from Programs and Features and click 'Change'.
   * When selecting components to be installed, the option to install the Windows 10 SDK is tucked away under Windows and Web Development -> Universal Windows App Development Tools.
+* Graphics driver with GCN shader extension support
+  * For example, AMD Radeon Software Crimson Edition 16.5.2 or later
 
 Building
 --------

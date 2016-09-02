@@ -9,7 +9,7 @@ _AMD_VS_SUFFIX = "_" .. string.gsub(_ACTION, "vs", "")
 _AMD_SAMPLE_DIR_LAYOUT  = "Desktop%{_AMD_VS_SUFFIX}/%{cfg.platform}/%{cfg.buildcfg}"
 
 -- Specify WindowsTargetPlatformVersion here for VS2015
-_AMD_WIN_SDK_VERSION = "10.0.10240.0"
+_AMD_WIN_SDK_VERSION = "10.0.14393.0"
 
 -- command lines for Visual Studio build events
 _AMD_COPY_AGS_RLS_DLL_TO_BIN = "xcopy \"..\\..\\ags_lib\\lib\\amd_ags_x64.dll\"  \"..\\bin\" /H /R /Y > nul"

@@ -319,7 +319,7 @@ void Barycentrics12::CreateRootSignature ()
 
     // We don't use another descriptor heap for the sampler, instead we use a
     // static sampler
-    CD3DX12_STATIC_SAMPLER_DESC samplers[2];
+    CD3DX12_STATIC_SAMPLER_DESC samplers[1];
     samplers[0].Init (0, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 
     CD3DX12_ROOT_SIGNATURE_DESC descRootSignature;
@@ -327,18 +327,9 @@ void Barycentrics12::CreateRootSignature ()
     // Create the root signature
 #ifdef AMD_USE_SHADER_INTRINSICS
     //*** add AMD Intrinsic Resource ***
-    range[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, AGS_DX12_SHADER_INSTRINSICS_SPACE_ID); // t0
+    range[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, AGS_DX12_SHADER_INSTRINSICS_SPACE_ID); // u0
     parameters[2].InitAsDescriptorTable(1, &range[1], D3D12_SHADER_VISIBILITY_ALL);
-
-    //*** add AMD Intrinsic Sampler ***
-    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_STATIC_SAMPLER_DESC AmdExtD3DShaderIntrinsicsSampler;
-    AmdExtD3DShaderIntrinsicsSampler.Init(0);
-    AmdExtD3DShaderIntrinsicsSampler.RegisterSpace = AGS_DX12_SHADER_INSTRINSICS_SPACE_ID;
-    AmdExtD3DShaderIntrinsicsSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-    samplers[1] = AmdExtD3DShaderIntrinsicsSampler;
-
-    descRootSignature.Init(3, parameters, 2, samplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    descRootSignature.Init(3, parameters, 1, samplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 #else
     descRootSignature.Init (2, parameters, 1, samplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 #endif

@@ -20,7 +20,7 @@ System requirements
   * For existing installations, you can re-run the installer or select Visual Studio from Programs and Features and click 'Change'.
   * When selecting components to be installed, the option to install the Windows 10 SDK is tucked away under Windows and Web Development -> Universal Windows App Development Tools.
 * A graphics driver with GCN shader extension support.
-  * For example, AMD Radeon Software Crimson Edition 16.5.2 or later.
+  * For example, AMD Radeon Software Crimson Edition 16.9.1 (driver version 16.40) or later.
 
 Building
 --------

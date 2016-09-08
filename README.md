@@ -29,6 +29,8 @@ Visual Studio files can be found in the `barycentrics12\build` directory.
 
 If you need to regenerate the Visual Studio files, open a command prompt in the `barycentrics12\premake` directory and run `..\..\premake\premake5.exe vs2015` (or `..\..\premake\premake5.exe vs2013` for Visual Studio 2013.)
 
+If you want to target a different Windows 10 SDK version, change the value for `_AMD_WIN_SDK_VERSION` in `premake\amd_premake_util.lua` and regenerate the Visual Studio files as described above.
+
 Sample overview
 ---------------
 

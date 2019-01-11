@@ -1,7 +1,9 @@
+[![pipeline status](http://isvgit.amd.com/gpuopen/Barycentrics12/badges/master/pipeline.svg)](http://isvgit.amd.com/gpuopen/Barycentrics12/commits/master)
+
 Barycentrics D3D12 GCN Shader Extension Sample
 ==============================================
 
-This sample shows how to use the GCN shader extensions for D3D12 to access the barycentric intrinsic instruction in an HLSL pixel shader. 
+This sample shows how to use the GCN shader extensions for D3D12 to access the barycentric intrinsic instruction in an HLSL pixel shader.
 
 License
 -------
@@ -11,7 +13,7 @@ MIT: see `LICENSE.txt` for details.
 System requirements
 -------------------
 
-* A graphics card with D3D12 support.<sup>[1](#barycentrics12-footnote1)</sup> 
+* A graphics card with D3D12 support.<sup>[1](#barycentrics12-footnote1)</sup>
   * For instance, any GCN-based AMD GPU.
 * Windows 10 (64-bit recommended).
 * Visual Studio 2015 with Visual C++ and the Windows 10 SDK installed. The [free community edition](https://www.visualstudio.com/downloads/download-visual-studio-vs) is sufficient.
@@ -42,12 +44,12 @@ Points of interest
 
 * This sample uses a driver extension to enable the use of instrinsic instructions.
   * The driver extension is accessed through the AMD GPU Services (AGS) library.
-  * For more information on AGS, including samples, visit the AGS SDK repository: https://github.com/GPUOpen-LibrariesAndSDKs/AGS_SDK 
+  * For more information on AGS, including samples, visit the AGS SDK repository: https://github.com/GPUOpen-LibrariesAndSDKs/AGS_SDK
 * The intrinsic instructions require a 5.1 shader model.
 * The Root Signature will need to use an extra resource and sampler. These are not real resources/samplers, they are just used to encode the intrinsic instruction.
 * The shader compiler should not use the D3DCOMPILE_SKIP_OPTIMIZATION option, otherwise it will not work.
 * Other instrinsics are also available: Min, Med, Max ...
-* For clarity purposes, the code required to enable the intrinsics extension is #ifdef'ed. 
+* For clarity purposes, the code required to enable the intrinsics extension is #ifdef'ed.
 * The `DEBUG` configuration will automatically enable the debug layers to validate the API usage. Check the source code for details, as this requires the graphics tools to be installed.
 
 Third-party software

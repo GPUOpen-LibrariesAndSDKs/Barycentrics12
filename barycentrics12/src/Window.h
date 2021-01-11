@@ -38,8 +38,7 @@ namespace AMD
 struct WindowClass final
 {
 public:
-    WindowClass (const std::string& name,
-        ::WNDPROC procedure = ::DefWindowProc);
+    WindowClass (const std::string& name, WNDPROC procedure = ::DefWindowProc);
     ~WindowClass ();
 
     const std::string& GetName () const;
@@ -62,7 +61,7 @@ public:
 
     bool IsClosed () const;
     virtual void OnClose () = 0;
-    virtual bool MessagePump() const = 0;;
+    virtual bool MessagePump() const = 0;
     int GetWidth () const;
     int GetHeight () const;
 

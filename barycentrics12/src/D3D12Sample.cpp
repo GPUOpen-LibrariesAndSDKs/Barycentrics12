@@ -30,6 +30,12 @@
 
 #include "Window.h"
 
+#ifdef _DEBUG
+#pragma comment (lib, "../../../ags_lib/lib/amd_ags_x64_2019_MDd.lib" )
+#else
+#pragma comment (lib, "../../../ags_lib/lib/amd_ags_x64_2019_MD.lib" )
+#endif
+
 #ifdef max
 #undef max
 #endif
@@ -38,99 +44,15 @@ using namespace Microsoft::WRL;
 
 namespace AMD
 {
-namespace
-{
-struct RenderEnvironment
-{
-    ComPtr<ID3D12Device> device;
-    ComPtr<ID3D12CommandQueue> queue;
-    ComPtr<IDXGISwapChain> swapChain;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
-/**
-Create everything we need for rendering, this includes a device, a command queue,
-and a swap chain.
-*/
-RenderEnvironment CreateDeviceAndSwapChainHelper (
-    _In_opt_ IDXGIAdapter* adapter,
-    D3D_FEATURE_LEVEL minimumFeatureLevel,
-    _In_ const DXGI_SWAP_CHAIN_DESC* swapChainDesc)
+D3D12Sample::D3D12Sample ()
 {
-    RenderEnvironment result;
-
-#ifdef DEBUG
-    // Enable the D3D12 debug layer.
-    {
-        ComPtr<ID3D12Debug> debugController;
-        HRESULT hr = D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
-        if (hr == S_OK)
-        {
-            debugController->EnableDebugLayer();
-        }
-    }
-#endif
-
-    auto hr = D3D12CreateDevice (adapter, minimumFeatureLevel,
-        IID_PPV_ARGS (&result.device));
-
-    if (FAILED (hr))
-    {
-        throw std::runtime_error ("Device creation failed.");
-    }
-
-    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-    hr = result.device->CreateCommandQueue (&queueDesc, IID_PPV_ARGS (&result.queue));
-
-    if (FAILED (hr))
-    {
-        throw std::runtime_error ("Command queue creation failed.");
-    }
-
-    ComPtr<IDXGIFactory4> dxgiFactory;
-
-    UINT Flags = 0;
-#ifdef DEBUG
-    Flags |= DXGI_CREATE_FACTORY_DEBUG;
-#endif
-    hr = CreateDXGIFactory2(Flags, IID_PPV_ARGS(&dxgiFactory));
-
-    if (FAILED (hr))
-    {
-        throw std::runtime_error ("DXGI factory creation failed.");
-    }
-
-    // Must copy into non-const space
-    DXGI_SWAP_CHAIN_DESC swapChainDescCopy = *swapChainDesc;
-    hr = dxgiFactory->CreateSwapChain (
-        result.queue.Get (),
-        &swapChainDescCopy,
-        &result.swapChain
-        );
-
-    if (FAILED (hr))
-    {
-        throw std::runtime_error ("Swap chain creation failed.");
-    }
-
-    return result;
-}
-}   // namespace
-
-///////////////////////////////////////////////////////////////////////////////
-D3D12Sample::D3D12Sample () :
-    m_agsContext( nullptr )
-{
-    agsInit( &m_agsContext, nullptr, nullptr );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 D3D12Sample::~D3D12Sample ()
 {
-    agsDeInit( m_agsContext );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -176,11 +98,11 @@ void D3D12Sample::PrepareRender ()
 void D3D12Sample::Render ()
 {
     PrepareRender ();
-    
+
     auto commandList = m_commandLists [m_currentBackBuffer].Get ();
 
     RenderImpl (commandList);
-    
+
     FinalizeRender ();
 }
 
@@ -400,6 +322,12 @@ void D3D12Sample::Shutdown ()
     {
         CloseHandle (event);
     }
+
+    if ( m_agsContext )
+    {
+        agsDriverExtensionsDX12_DestroyDevice( m_agsContext, m_device.Get(), nullptr );
+        agsDeInitialize( m_agsContext );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -410,14 +338,62 @@ void D3D12Sample::CreateDeviceAndSwapChain ()
     // open settings, Apps, Apps & Features, Optional features, Add Feature,
     // and add the graphics tools
 #ifdef _DEBUG
-    ComPtr<ID3D12Debug> debugController;
+    ComPtr<ID3D12Debug1> debugController;
     D3D12GetDebugInterface (IID_PPV_ARGS (&debugController));
     debugController->EnableDebugLayer ();
+    //debugController->SetEnableGPUBasedValidation(true);
+    //debugController->SetEnableSynchronizedCommandQueueValidation(true);
 #endif
 
-    DXGI_SWAP_CHAIN_DESC swapChainDesc;
-    ::ZeroMemory (&swapChainDesc, sizeof (swapChainDesc));
+    ComPtr<IDXGIFactory> factory = {};
+    CreateDXGIFactory2(0, IID_PPV_ARGS(&factory));
 
+    ComPtr<IDXGIAdapter> adapter = {};
+    factory->EnumAdapters(0, &adapter );
+
+    DXGI_ADAPTER_DESC adapterDesc = {};
+    adapter->GetDesc(&adapterDesc);
+
+    // Create an AGS Device
+    //
+    if (adapterDesc.VendorId == 0x1002)
+    {
+        AGSReturnCode result = agsInitialize( AGS_MAKE_VERSION( AMD_AGS_VERSION_MAJOR, AMD_AGS_VERSION_MINOR, AMD_AGS_VERSION_PATCH ), nullptr, &m_agsContext, &m_agsGPUInfo);
+        if (result == AGS_SUCCESS)
+        {
+            AGSDX12DeviceCreationParams creationParams = {};
+            creationParams.pAdapter = adapter.Get();
+            creationParams.iid = __uuidof(m_device);
+            creationParams.FeatureLevel = D3D_FEATURE_LEVEL_12_0;
+
+            AGSDX12ExtensionParams extensionParams = {};
+            AGSDX12ReturnedParams returnedParams = {};
+
+            // Create AGS Device
+            //
+            AGSReturnCode rc = agsDriverExtensionsDX12_CreateDevice(m_agsContext, &creationParams, &extensionParams, &returnedParams);
+            if (rc == AGS_SUCCESS)
+            {
+                m_device = returnedParams.pDevice;
+                m_agsDeviceExtensions = returnedParams.extensionsSupported;
+            }
+        }
+    }
+
+    // If the AGS device wasn't created then try using a regular device
+    //
+    if (m_device==NULL)
+    {
+        D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_device));
+    }
+
+    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+    m_device->CreateCommandQueue (&queueDesc, IID_PPV_ARGS (&m_commandQueue));
+
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     swapChainDesc.BufferCount = GetQueueSlotCount ();
     // This is _UNORM but we'll use a _SRGB view on this. See
     // SetupRenderTargets() for details, it must match what
@@ -431,12 +407,11 @@ void D3D12Sample::CreateDeviceAndSwapChain ()
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     swapChainDesc.Windowed = true;
 
-    auto renderEnv = CreateDeviceAndSwapChainHelper (nullptr, D3D_FEATURE_LEVEL_11_0,
-        &swapChainDesc);
-
-    m_device = renderEnv.device;
-    m_commandQueue = renderEnv.queue;
-    m_swapChain = renderEnv.swapChain;
+    factory->CreateSwapChain (
+        m_commandQueue.Get(),
+        &swapChainDesc,
+        &m_swapChain
+        );
 
     m_renderTargetViewDescriptorSize =
         m_device->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_RTV);

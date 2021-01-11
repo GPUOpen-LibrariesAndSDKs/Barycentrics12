@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.15)
+set(CMAKE_GENERATOR_PLATFORM x64)
+set(CMAKE_CONFIGURATION_TYPES Debug Release)
+
+project(Barycentrics12 VERSION 6.0.1)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../ags_lib/inc)
+
+file( GLOB BARYCENTRICS12_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+)
+file( GLOB BARYCENTRICS12_HLSL
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hlsl"
+)
+set(AGS_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/../ags_lib/inc/amd_ags.h)
+
+
+add_executable(${PROJECT_NAME} WIN32 ${BARYCENTRICS12_SOURCES} ${AGS_PUBLIC_HEADER})
+set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX d)
+set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+
+target_link_libraries(${PROJECT_NAME} d3d12 dxgi d3dcompiler dxguid)
+
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+
+source_group("Source"                           FILES ${BARYCENTRICS12_SOURCES}) 
+source_group("Inc"                              FILES ${AGS_PUBLIC_HEADER})
+source_group("HLSL"                             FILES ${BARYCENTRICS12_HLSL})

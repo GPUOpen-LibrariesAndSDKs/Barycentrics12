@@ -1,9 +1,9 @@
 [![pipeline status](http://isvgit.amd.com/gpuopen/Barycentrics12/badges/master/pipeline.svg)](http://isvgit.amd.com/gpuopen/Barycentrics12/commits/master)
 
-Barycentrics D3D12 GCN Shader Extension Sample
+Barycentrics D3D12 Shader Extension Sample
 ==============================================
 
-This sample shows how to use the GCN shader extensions for D3D12 to access the barycentric intrinsic instruction in an HLSL pixel shader.
+This sample shows how to use the shader extensions for D3D12 to access the barycentric intrinsic instruction in an HLSL pixel shader.
 
 License
 -------
@@ -14,24 +14,15 @@ System requirements
 -------------------
 
 * A graphics card with D3D12 support.<sup>[1](#barycentrics12-footnote1)</sup>
-  * For instance, any GCN-based AMD GPU.
+  * For instance, any GCN-based AMD GPU onwards.
 * Windows 10 (64-bit recommended).
-* Visual Studio 2015 with Visual C++ and the Windows 10 SDK installed. The [free community edition](https://www.visualstudio.com/downloads/download-visual-studio-vs) is sufficient.
+* Visual Studio 2019 with Visual C++ and the Windows 10 SDK installed. The [free community edition](https://www.visualstudio.com/downloads/download-visual-studio-vs) is sufficient.
   * Note: neither Visual C++ nor the Windows 10 SDK are installed with Visual Studio 2015 by default.
-  * For a fresh installation of Visual Studio 2015, choose 'Custom', not 'Typical', and select the required components.
+  * For a fresh installation of Visual Studio 2019, choose 'Custom', not 'Typical', and select the required components.
   * For existing installations, you can re-run the installer or select Visual Studio from Programs and Features and click 'Change'.
   * When selecting components to be installed, the option to install the Windows 10 SDK is tucked away under Windows and Web Development -> Universal Windows App Development Tools.
 * A graphics driver with GCN shader extension support.
   * For example, AMD Radeon Software Crimson Edition 16.9.1 (driver version 16.40) or later.
-
-Building
---------
-
-Visual Studio files can be found in the `barycentrics12\build` directory.
-
-If you need to regenerate the Visual Studio files, open a command prompt in the `barycentrics12\premake` directory and run `..\..\premake\premake5.exe vs2015` (or `..\..\premake\premake5.exe vs2013` for Visual Studio 2013.)
-
-If you want to target a different Windows 10 SDK version, change the value for `_AMD_WIN_SDK_VERSION` in `premake\amd_premake_util.lua` and regenerate the Visual Studio files as described above.
 
 Sample overview
 ---------------
@@ -48,14 +39,8 @@ Points of interest
 * The intrinsic instructions require a 5.1 shader model.
 * The Root Signature will need to use an extra resource and sampler. These are not real resources/samplers, they are just used to encode the intrinsic instruction.
 * The shader compiler should not use the D3DCOMPILE_SKIP_OPTIMIZATION option, otherwise it will not work.
-* Other instrinsics are also available: Min, Med, Max ...
-* For clarity purposes, the code required to enable the intrinsics extension is #ifdef'ed.
+* Other instrinsics are also available.
 * The `DEBUG` configuration will automatically enable the debug layers to validate the API usage. Check the source code for details, as this requires the graphics tools to be installed.
-
-Third-party software
---------------------
-
-* Premake is distributed under the terms of the BSD License. See `premake\LICENSE.txt`.
 
 Attribution
 -----------

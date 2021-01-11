@@ -24,6 +24,7 @@
 #define AMD_BARYCENTRICS_D3D12SAMPLE_H_
 
 #include <d3d12.h>
+#include <dxgi.h>
 #include <wrl.h>
 #include <memory>
 #include "amd_ags.h"
@@ -74,7 +75,9 @@ protected:
     Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso;
 
-    AGSContext*                                 m_agsContext;
+    AGSContext*                                 m_agsContext = nullptr;
+    AGSGPUInfo                                  m_agsGPUInfo = {};
+    AGSDX12ReturnedParams::ExtensionsSupported  m_agsDeviceExtensions = {};
 
     virtual void InitializeImpl (ID3D12GraphicsCommandList* uploadCommandList);
     virtual void RenderImpl (ID3D12GraphicsCommandList* commandList);
@@ -96,14 +99,14 @@ private:
     void SetupSwapChain ();
     void SetupRenderTargets ();
 
-    std::unique_ptr<Window> m_window;
+    std::unique_ptr<Window> m_window = {};
 
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocators[QUEUE_SLOT_COUNT];
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandLists[QUEUE_SLOT_COUNT];
+    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_commandAllocators[QUEUE_SLOT_COUNT] = {};
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_commandLists[QUEUE_SLOT_COUNT] = {};
 
     int m_currentBackBuffer = 0;
-    
-    unsigned m_renderTargetViewDescriptorSize;
+
+    unsigned int m_renderTargetViewDescriptorSize = 0;
 };
 }   // namespace AMD
 

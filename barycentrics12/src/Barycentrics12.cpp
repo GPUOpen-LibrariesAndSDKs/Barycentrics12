@@ -31,20 +31,6 @@ namespace AMD
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-#ifdef AMD_USE_SHADER_INTRINSICS
-void Barycentrics12::InitExtensions()
-{
-    unsigned int extensionsSupported = 0;
-    if ( agsDriverExtensionsDX12_Init( m_agsContext, m_device.Get(), &extensionsSupported ) == AGS_SUCCESS )
-    {
-        if ( extensionsSupported & AGS_DX12_EXTENSION_INTRINSIC_BARYCENTRICS )
-        {
-            // the Barycentric extension is supported so use this codepath
-        }
-    }
-}
-#endif
-///////////////////////////////////////////////////////////////////////////////
 void Barycentrics12::CreateTexture (ID3D12GraphicsCommandList * uploadCommandList)
 {
     int width = 256, height = 256;
@@ -135,10 +121,6 @@ void Barycentrics12::RenderImpl (ID3D12GraphicsCommandList * commandList)
 ///////////////////////////////////////////////////////////////////////////////
 void Barycentrics12::InitializeImpl (ID3D12GraphicsCommandList * uploadCommandList)
 {
-#ifdef AMD_USE_SHADER_INTRINSICS
-    InitExtensions();
-#endif
-
     D3D12Sample::InitializeImpl (uploadCommandList);
 
     // We need one descriptor heap to store our texture SRV which cannot go
@@ -162,9 +144,6 @@ void Barycentrics12::InitializeImpl (ID3D12GraphicsCommandList * uploadCommandLi
 ///////////////////////////////////////////////////////////////////////////////
 void Barycentrics12::ShutdownImpl()
 {
-#ifdef AMD_USE_SHADER_INTRINSICS
-    agsDriverExtensionsDX12_DeInit( m_agsContext );
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -298,7 +277,7 @@ void Barycentrics12::UpdateConstantBuffer ()
     void* p;
     m_constantBuffers[GetQueueSlot ()]->Map (0, nullptr, &p);
     float* f = static_cast<float*>(p);
-    f[0] = std::abs (std::sin (static_cast<float> (counter) / 64.0f));
+    f[0] = std::abs (sinf (static_cast<float> (counter) / 64.0f));
     m_constantBuffers[GetQueueSlot ()]->Unmap (0, nullptr);
 }
 
@@ -307,10 +286,10 @@ void Barycentrics12::CreateRootSignature ()
 {
     // We have two root parameters, one is a pointer to a descriptor heap
     // with a SRV, the second is a constant buffer view
-    CD3DX12_ROOT_PARAMETER parameters[3];
+    CD3DX12_ROOT_PARAMETER parameters[3] = {};
 
     // Create a descriptor table with one entry in our descriptor heap
-    CD3DX12_DESCRIPTOR_RANGE range[2];
+    CD3DX12_DESCRIPTOR_RANGE range[2] = {};
     range[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
     parameters[0].InitAsDescriptorTable (1, range);
 
@@ -319,20 +298,23 @@ void Barycentrics12::CreateRootSignature ()
 
     // We don't use another descriptor heap for the sampler, instead we use a
     // static sampler
-    CD3DX12_STATIC_SAMPLER_DESC samplers[1];
+    CD3DX12_STATIC_SAMPLER_DESC samplers[1] = {};
     samplers[0].Init (0, D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT);
 
-    CD3DX12_ROOT_SIGNATURE_DESC descRootSignature;
+    CD3DX12_ROOT_SIGNATURE_DESC descRootSignature = {};
 
     // Create the root signature
-#ifdef AMD_USE_SHADER_INTRINSICS
-    //*** add AMD Intrinsic Resource ***
-    range[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, AGS_DX12_SHADER_INSTRINSICS_SPACE_ID); // u0
-    parameters[2].InitAsDescriptorTable(1, &range[1], D3D12_SHADER_VISIBILITY_ALL);
-    descRootSignature.Init(3, parameters, 1, samplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-#else
-    descRootSignature.Init (2, parameters, 1, samplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-#endif
+    if ( m_agsDeviceExtensions.intrinsics16 )
+    {
+        //*** add AMD Intrinsic Resource ***
+        range[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, AGS_DX12_SHADER_INSTRINSICS_SPACE_ID); // u0
+        parameters[2].InitAsDescriptorTable(1, &range[1], D3D12_SHADER_VISIBILITY_ALL);
+        descRootSignature.Init(3, parameters, 1, samplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    }
+    else
+    {
+        descRootSignature.Init (2, parameters, 1, samplers, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    }
 
     ComPtr<ID3DBlob> rootBlob;
     ComPtr<ID3DBlob> errorBlob;
@@ -357,18 +339,16 @@ void Barycentrics12::CreatePipelineStateObject ()
     UINT compileFlags = 0;
 #endif
 
-#ifdef AMD_USE_SHADER_INTRINSICS
     //*********Cannot use D3DCOMPILE_SKIP_OPTIMIZATION flag with AMD Intrinsic extension!****************
     compileFlags &= ~D3DCOMPILE_SKIP_OPTIMIZATION;
 
-    static const D3D_SHADER_MACRO macros[] =
+    static const D3D_SHADER_MACRO useAGSMacros[] =
     {
         { "AMD_USE_SHADER_INTRINSICS", "1" },
         { nullptr, nullptr }
     };
-#else
-    static const D3D_SHADER_MACRO *macros = NULL;
-#endif
+
+    const D3D_SHADER_MACRO* macros = m_agsDeviceExtensions.intrinsics16 ? useAGSMacros : nullptr;
 
     ID3DBlob* pErrorMsgs;
     HRESULT hr;

@@ -22,14 +22,19 @@
 
 #include "Barycentrics12.h"
 #include <DXGIDebug.h>
+#include <stdexcept>
 
 int WinMain (
-    _In_ HINSTANCE /* hInstance */,
-    _In_opt_ HINSTANCE /* hPrevInstance */,
-    _In_ LPSTR     /* lpCmdLine */,
-    _In_ int       /* nCmdShow */
+    _In_ HINSTANCE,
+    _In_opt_ HINSTANCE,
+    _In_ LPSTR,
+    _In_ int
     )
 {
+    // Enable run-time memory check for debug builds.
+	// (When _DEBUG is not defined, calls to _CrtSetDbgFlag are removed during preprocessing.)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
     AMD::D3D12Sample* sample = new AMD::Barycentrics12;
 
     if (sample == nullptr)
@@ -49,7 +54,7 @@ int WinMain (
     delete sample;
 
     //check refleaks
-    HMODULE dxgidebug = LoadLibraryEx(L"dxgidebug.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+    HMODULE dxgidebug = LoadLibraryEx("dxgidebug.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (dxgidebug)
     {
         typedef HRESULT(WINAPI * LPDXGIGETDEBUGINTERFACE)(REFIID, void **);

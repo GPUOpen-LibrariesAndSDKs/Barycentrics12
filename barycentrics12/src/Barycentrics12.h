@@ -32,11 +32,7 @@
 // When enabled the pixel shader will use the barycentric instruction,
 // when disabled it will just render a triangle using a checker board texture.
 //
-#define AMD_USE_SHADER_INTRINSICS
 
-#ifdef AMD_USE_SHADER_INTRINSICS
-#include "../../AGS_LIB/inc/amd_ags.h"
-#endif
 
 #include <vector>
 
@@ -45,10 +41,6 @@ namespace AMD
 class Barycentrics12 : public D3D12Sample
 {
 private:
-
-#ifdef AMD_USE_SHADER_INTRINSICS
-    void InitExtensions();
-#endif
 
     void CreateTexture (ID3D12GraphicsCommandList* uploadCommandList);
     void CreateMeshBuffers (ID3D12GraphicsCommandList* uploadCommandList);
